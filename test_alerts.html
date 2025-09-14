@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alert System Test</title>
+</head>
+<body>
+    <h1>Coinfox Alert System Test</h1>
+    
+    <div id="test-container">
+        <h2>Manual Alert Test</h2>
+        <p>Open your browser console to see alert system logs.</p>
+        
+        <h3>Steps to test:</h3>
+        <ol>
+            <li>Open the Coinfox app in your browser (localhost:3000)</li>
+            <li>Add some coins to your portfolio (e.g., BTC, ETH)</li>
+            <li>Go to a coin detail page (click on a coin in your portfolio)</li>
+            <li>Click "Show Price Alerts" button</li>
+            <li>Create a test alert:
+                <ul>
+                    <li>Select alert type (Above/Below)</li>
+                    <li>Set a target price very close to current price</li>
+                    <li>Click "Add Alert"</li>
+                </ul>
+            </li>
+            <li>The alert should trigger within 30 seconds due to price monitoring</li>
+            <li>You should see both a notification in the app and browser notification (if permissions allowed)</li>
+        </ol>
+        
+        <h3>Debug Information:</h3>
+        <p>Check browser console for:</p>
+        <ul>
+            <li>"🚨 Starting enhanced real-time price monitoring..."</li>
+            <li>"🔍 Checking X active alerts..."</li>
+            <li>"🚨 Y alerts triggered!"</li>
+        </ul>
+        
+        <h3>Local Storage Debug:</h3>
+        <button onclick="checkAlerts()">Check Stored Alerts</button>
+        <button onclick="createTestAlert()">Create Test Alert</button>
+        <button onclick="clearAlerts()">Clear All Alerts</button>
+        
+        <div id="debug-output"></div>
+    </div>
+
+    <script>
+        function checkAlerts() {
+            const alerts = localStorage.getItem('coinAlerts');
+            const output = document.getElementById('debug-output');
+            
+            if (alerts) {
+                const parsedAlerts = JSON.parse(alerts);
+                output.innerHTML = `<h4>Stored Alerts (${parsedAlerts.length}):</h4><pre>${JSON.stringify(parsedAlerts, null, 2)}</pre>`;
+            } else {
+                output.innerHTML = '<p>No alerts found in localStorage</p>';
+            }
+        }
+        
+        function createTestAlert() {
+            const testAlert = {
+                id: `alert_${Date.now()}_test`,
+                coin: 'btc',
+                type: 'above',
+                targetPrice: 50000, // Set a reasonable test price
+                currency: 'USD',
+                status: 'active',
+                createdAt: Date.now(),
+                triggeredAt: null,
+                dismissedAt: null
+            };
+            
+            const existingAlerts = JSON.parse(localStorage.getItem('coinAlerts') || '[]');
+            existingAlerts.push(testAlert);
+            localStorage.setItem('coinAlerts', JSON.stringify(existingAlerts));
+            
+            document.getElementById('debug-output').innerHTML = `<p>Test alert created for BTC above $50,000</p>`;
+            console.log('Test alert created:', testAlert);
+        }
+        
+        function clearAlerts() {
+            localStorage.removeItem('coinAlerts');
+            document.getElementById('debug-output').innerHTML = '<p>All alerts cleared</p>';
+            console.log('All alerts cleared');
+        }
+        
+        // Auto-check on page load
+        window.onload = checkAlerts;
+    </script>
+</body>
+</html>

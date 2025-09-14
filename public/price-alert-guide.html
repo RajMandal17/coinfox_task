@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coinfox Price Alert Setup Guide</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #1a1a1a; 
+            color: white; 
+        }
+        .step { 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 8px; 
+        }
+        .code { 
+            background: #333; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 10px 0; 
+        }
+        button { 
+            background: #21ce99; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        .alert { 
+            background: #ff6b6b; 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 10px 0; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🚨 Coinfox Price Alert Setup Guide</h1>
+    
+    <div class="step">
+        <h2>Step 1: Check Your Portfolio</h2>
+        <p>First, let's see if you have coins in your portfolio:</p>
+        <button onclick="checkPortfolio()">Check Portfolio</button>
+        <div id="portfolio-result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 2: Add Test Coins (if needed)</h2>
+        <p>If you don't have coins, click this button to add some popular ones:</p>
+        <button onclick="addTestCoins()">Add Test Coins</button>
+        <div id="coins-result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 3: Create Your First Alert</h2>
+        <p>Create a test price alert:</p>
+        <label>Coin: 
+            <select id="coinSelect">
+                <option value="btc">Bitcoin (BTC)</option>
+                <option value="eth">Ethereum (ETH)</option>
+                <option value="ada">Cardano (ADA)</option>
+            </select>
+        </label><br><br>
+        
+        <label>Alert Type: 
+            <select id="alertType">
+                <option value="above">Price Above</option>
+                <option value="below">Price Below</option>
+            </select>
+        </label><br><br>
+        
+        <label>Target Price: 
+            <input type="number" id="targetPrice" placeholder="50000" step="0.01">
+        </label><br><br>
+        
+        <button onclick="createAlert()">Create Alert</button>
+        <div id="alert-result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 4: Test the System</h2>
+        <button onclick="testAlerts()">Test Alert System</button>
+        <button onclick="testNotification()">Test Notification</button>
+        <div id="test-result"></div>
+    </div>
+    
+    <div class="step">
+        <h2>Step 5: View Your Alerts</h2>
+        <button onclick="viewAlerts()">View All Alerts</button>
+        <div id="alerts-display"></div>
+    </div>
+
+    <script>
+        function checkPortfolio() {
+            const coins = localStorage.getItem('coinz');
+            const result = document.getElementById('portfolio-result');
+            
+            if (coins) {
+                const parsedCoins = JSON.parse(coins);
+                result.innerHTML = `<div class="code">Found ${Object.keys(parsedCoins).length} coins: ${Object.keys(parsedCoins).join(', ')}</div>`;
+            } else {
+                result.innerHTML = '<div class="alert">No coins found! You need to add coins first.</div>';
+            }
+        }
+        
+        function addTestCoins() {
+            const testCoins = {
+                'btc': { amount: 0.1, name: 'Bitcoin' },
+                'eth': { amount: 1.0, name: 'Ethereum' },
+                'ada': { amount: 100, name: 'Cardano' }
+            };
+            
+            localStorage.setItem('coinz', JSON.stringify(testCoins));
+            document.getElementById('coins-result').innerHTML = '<div class="code">✅ Added test coins: BTC, ETH, ADA</div>';
+        }
+        
+        function createAlert() {
+            const coin = document.getElementById('coinSelect').value;
+            const type = document.getElementById('alertType').value;
+            const targetPrice = parseFloat(document.getElementById('targetPrice').value);
+            
+            if (!targetPrice) {
+                document.getElementById('alert-result').innerHTML = '<div class="alert">Please enter a target price!</div>';
+                return;
+            }
+            
+            const alert = {
+                id: Date.now(),
+                coin: coin,
+                type: type,
+                targetPrice: targetPrice,
+                currency: 'USD',
+                status: 'active',
+                createdAt: Date.now()
+            };
+            
+            let alerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+            alerts.push(alert);
+            localStorage.setItem('priceAlerts', JSON.stringify(alerts));
+            
+            document.getElementById('alert-result').innerHTML = `<div class="code">✅ Created alert: ${coin.toUpperCase()} ${type} $${targetPrice}</div>`;
+        }
+        
+        function testAlerts() {
+            if (typeof window.debugAlertSystem === 'function') {
+                window.debugAlertSystem();
+                document.getElementById('test-result').innerHTML = '<div class="code">✅ Alert system test triggered!</div>';
+            } else {
+                document.getElementById('test-result').innerHTML = '<div class="alert">Debug functions not available. Make sure you\'re on the main Coinfox app.</div>';
+            }
+        }
+        
+        function testNotification() {
+            if (typeof window.testNotification === 'function') {
+                window.testNotification();
+                document.getElementById('test-result').innerHTML = '<div class="code">✅ Test notification sent!</div>';
+            } else {
+                // Create a simple notification test
+                if (Notification.permission === 'granted') {
+                    new Notification('🚨 Coinfox Alert Test', {
+                        body: 'This is a test notification from your price alert system!',
+                        icon: '/favicon.ico'
+                    });
+                    document.getElementById('test-result').innerHTML = '<div class="code">✅ Test notification sent!</div>';
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('🚨 Coinfox Alert Test', {
+                                body: 'Notifications enabled! You\'ll receive alerts when prices hit your targets.',
+                                icon: '/favicon.ico'
+                            });
+                        }
+                    });
+                }
+            }
+        }
+        
+        function viewAlerts() {
+            const alerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+            const display = document.getElementById('alerts-display');
+            
+            if (alerts.length === 0) {
+                display.innerHTML = '<div class="alert">No alerts found. Create one first!</div>';
+                return;
+            }
+            
+            let html = '<div class="code"><strong>Your Alerts:</strong><br>';
+            alerts.forEach(alert => {
+                html += `• ${alert.coin.toUpperCase()} ${alert.type} $${alert.targetPrice} (${alert.status})<br>`;
+            });
+            html += '</div>';
+            display.innerHTML = html;
+        }
+        
+        // Auto-check portfolio on load
+        window.onload = function() {
+            checkPortfolio();
+        };
+    </script>
+</body>
+</html>
